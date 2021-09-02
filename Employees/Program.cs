@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
-
+using FileHelper;
 namespace Employees
 {
 
@@ -22,15 +22,15 @@ namespace Employees
         public int Id { get; set; }
         public string Name { get; set; }
         public string Age { get; set; }
-        public string Car { get; set; }
-        public Employee(string name, string age,string car)
+        public Car Car { get; set; }
+        public Employee(string name, string age, Car car)
         {
             Name = name;
             Age = age;
             Car = car;
             Id = count;
             count++;
-         }
+        }
 
         public Employee()
         {
@@ -47,38 +47,38 @@ namespace Employees
 
             while (true)
             {
-                Console.Write("Enter a commund: \n e - enter data \n v- view data \n f - find data \n d- delete data \n");
+                Console.Write("Enter a command: \n e - enter data \n v- view data \n f - find data \n d- delete data \n");
                 string commund = Console.ReadLine();
                 switch (commund)
                 {
                     case "e":
-                        enterData(list);
+                        EnterData(list);
                         break;
                     case "f":
-                        findData();
+                        FindData();
                         break;
                     case "v":
-                        viewData();
+                        ViewData();
                         break;
                     case "d":
-                        deleteData();
+                        DeleteData();
                         break;
                     default:
-                        Console.Write("Unknown commund");
+                        Console.Write("Unknown command");
                         break;
                 }
             }
 
 
         }
-        static void enterData(List<Employee> list)
+        static void EnterData(List<Employee> list)
         {
 
             string name;
             string age;
             int ageEmp;
             Car car;
-            string carEmp;
+           
 
 
             while (true)
@@ -116,8 +116,7 @@ namespace Employees
             {
                 Console.Write("Enter a car: ");
 
-                carEmp = Console.ReadLine();
-                if (Enum.TryParse<Car>(carEmp, true, out car))
+                if (Enum.TryParse<Car>(Console.ReadLine(), true, out car))
                 {
 
                     break;
@@ -127,23 +126,19 @@ namespace Employees
 
             }
 
-            Employee emp = new Employee(name,  age, carEmp );
+            Employee emp = new Employee(name, age, car);
+            string path = @"C:\test\test.txt";
 
-            string path = @"C:\test";
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
-            if (!dirInfo.Exists)
+
+            if (!File.Exists(path))
             {
+                DirectoryInfo dirInfo = new DirectoryInfo(@"C:\test");
                 dirInfo.Create();
                 try
                 {
-
                     list.Add(emp);
-                    string json = JsonSerializer.Serialize(list);
-                   
-                    using (StreamWriter file = new StreamWriter(@"C:\test\test.txt"))
-                    {
-                        file.Write(json);
-                    }
+                    string json = FileHelper.FileHelper.ReadJson(list);
+                    FileHelper.FileHelper.Write(json);
                 }
                 catch (Exception ex)
                 {
@@ -158,19 +153,12 @@ namespace Employees
                 {
                     try
                     {
-                       
-                        list = JsonSerializer.Deserialize<List<Employee>>(text);
-                       
 
+                        list = FileHelper.FileHelper.ReadList(text);
                         list.Add(emp);
-                       
-                        string json = JsonSerializer.Serialize(list);
-                        
-                        
-                        using (StreamWriter file = new StreamWriter(@"C:\test\test.txt"))
-                        {
-                            file.Write(json);
-                        }
+
+                        string json = FileHelper.FileHelper.ReadJson(list);
+                        FileHelper.FileHelper.Write(json);
                     }
                     catch (Exception ex)
                     {
@@ -179,19 +167,16 @@ namespace Employees
                 }
                 else
                 {
-                    
+
                     list.Add(emp);
-                    string json = JsonSerializer.Serialize(list);
-                    using (StreamWriter file = new StreamWriter(@"C:\test\test.txt"))
-                    {
-                        file.Write(json);
-                    }
+                    string json = FileHelper.FileHelper.ReadJson(list);
+                    FileHelper.FileHelper.Write(json);
                 }
             }
         }
 
 
-        static void viewData()
+        static void ViewData()
         {
             string path = @"C:\test\test.txt";
             if (File.Exists(path))
@@ -202,7 +187,7 @@ namespace Employees
                     string text = File.ReadAllText(path);
                     if (!String.IsNullOrEmpty(text))
                     {
-                        List<Employee> list = JsonSerializer.Deserialize<List<Employee>>(text);
+                        List<Employee> list = FileHelper.FileHelper.ReadList(text);
                         foreach (var i in list)
                         {
                             Console.Write($"{i.Name}\t{i.Age}\t{i.Car}\t \n");
@@ -225,7 +210,7 @@ namespace Employees
             }
 
         }
-        static void findData()
+        static void FindData()
         {
             Console.Write("Enter some information: \n");
             string inf = Console.ReadLine();
@@ -237,18 +222,16 @@ namespace Employees
                     string text = File.ReadAllText(path);
                     if (!String.IsNullOrEmpty(text))
                     {
-                        List<Employee> list = JsonSerializer.Deserialize<List<Employee>>(text);
+                        List<Employee> list = FileHelper.FileHelper.ReadList(text);
                         foreach (var i in list)
                         {
-                            if (inf == i.Name || inf == i.Age || inf == i.Car)
+                            if (inf == i.Name || inf == i.Age || inf == i.Car.ToString())
                                 Console.Write($"{i.Name}\t{i.Age}\t{i.Car}\t \n");
-                            
+
                         }
 
                     }
                     else Console.Write("List is empty\n");
-
-
 
                 }
                 catch (Exception ex)
@@ -263,7 +246,7 @@ namespace Employees
             }
 
         }
-        static void deleteData()
+        static void DeleteData()
         {
             Console.Write("Enter name: \n");
             string inf = Console.ReadLine();
@@ -276,22 +259,18 @@ namespace Employees
                     string text = File.ReadAllText(path);
                     if (!String.IsNullOrEmpty(text))
                     {
-                        List<Employee> list = JsonSerializer.Deserialize<List<Employee>>(text);
+                        List<Employee> list = FileHelper.FileHelper.ReadList(text);
+                        List<Employee> newList = new List<Employee>();
                         foreach (var i in list)
                         {
-                            if (inf == i.Name)
+                            if (inf != i.Name)
                             {
-                                list.Remove(i);
-                                string json = JsonSerializer.Serialize(list);                               
-                                using (StreamWriter file = new StreamWriter(@"C:\test\test.txt"))
-                                {
-                                    file.Write(json);
-                                }
-
+                                newList.Add(i);
                             }
-                            
-                        }
 
+                        }
+                        string json = FileHelper.FileHelper.ReadJson(newList);
+                        FileHelper.FileHelper.Write(json);
                     }
                     else Console.Write("List is empty\n");
                 }
@@ -306,7 +285,9 @@ namespace Employees
                 Console.Write("File is not exists");
             }
         }
-
+       
     }
-}
 
+
+    
+}
