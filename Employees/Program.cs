@@ -227,7 +227,6 @@ namespace Employees
                         {
                             if (inf == i.Name || inf == i.Age || inf == i.Car.ToString())
                                 Console.Write($"{i.Name}\t{i.Age}\t{i.Car}\t \n");
-
                         }
 
                     }
